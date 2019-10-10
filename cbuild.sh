@@ -1,0 +1,1 @@
+go build -o cdecoder.so -buildmode=c-shared cdecoder.go
