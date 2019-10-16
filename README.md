@@ -91,5 +91,6 @@ func main() {
 	offsetBytes, err := codec.NewBytes("0x0c00")
 	prefs, err := ToValidatorPrefsLegacy(&offsetBytes)
 	fmt.Println(prefs.UnstakeThreshold, err)
+    // 3 <nil>  
 }
 ```
