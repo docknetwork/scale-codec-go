@@ -1,4 +1,4 @@
-package base
+package codec
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 )
 
 func Encode(typeString string, value interface{}) (res string, err error) {
-	var bytes Bytes
+	var bytes OffsetBytes
 	typeString = strings.ToLower(typeString)
 
 	switch typeString {
@@ -24,6 +24,8 @@ func Encode(typeString string, value interface{}) (res string, err error) {
 		fallthrough
 	case "u128":
 		bytes, err = IntToBytes(value)
+	case "string":
+		bytes, err = StringToBytes(value)
 	default:
 		err = fmt.Errorf("unknown format %v", typeString)
 	}

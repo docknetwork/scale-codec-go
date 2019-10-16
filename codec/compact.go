@@ -1,4 +1,4 @@
-package base
+package codec
 
 const (
 	modeBits = 2

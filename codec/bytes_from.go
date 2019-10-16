@@ -1,4 +1,4 @@
-package base
+package codec
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"math/big"
 )
 
-func (sb *Bytes) FromCompact() (res Bytes, err error) {
+func (sb *OffsetBytes) FromCompact() (res OffsetBytes, err error) {
 	b, err := sb.GetNextByte()
 	if err != nil {
 		return
@@ -27,18 +27,7 @@ func (sb *Bytes) FromCompact() (res Bytes, err error) {
 	return
 }
 
-func (sb *Bytes) FromOption() (res Bytes, isNull bool, err error) {
-	b, err := sb.GetNextByte()
-	if err != nil {
-		return
-	}
-	if b == 1 {
-		res, err = NewBytes(sb.GetRemaining())
-	}
-	return
-}
-
-func BoolToBytes(value interface{}) (res Bytes, err error) {
+func BoolToBytes(value interface{}) (res OffsetBytes, err error) {
 	b, ok := value.(bool)
 	if !ok {
 		err = fmt.Errorf("wrong type of value")
@@ -62,7 +51,7 @@ func intToLEBytes(value interface{}) (res []byte, err error) {
 	return
 }
 
-func IntToBytes(value interface{}) (res Bytes, err error) {
+func IntToBytes(value interface{}) (res OffsetBytes, err error) {
 	var bytes []byte
 
 	switch t := value.(type) {
@@ -91,5 +80,17 @@ func IntToBytes(value interface{}) (res Bytes, err error) {
 	}
 	bytes = RemoveExtraLEBytes(bytes)
 	res, err = NewBytes(bytes)
+	return
+}
+
+func StringToBytes(value interface{}) (res OffsetBytes, err error) {
+	switch t := value.(type) {
+	case string:
+		s, _ := value.(string)
+		res, err = NewBytes([]byte(s))
+	default:
+		err = fmt.Errorf("wrong type of value %T", t)
+		return
+	}
 	return
 }

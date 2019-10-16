@@ -1,18 +1,18 @@
-package base
+package codec
 
 import (
 	"encoding/hex"
 	"fmt"
 )
 
-//Bytes is a wrapper for []bytes that's keeping offset for reading purposes
-type Bytes struct {
+//OffsetBytes is a wrapper for []bytes that's keeping offset for reading purposes
+type OffsetBytes struct {
 	data   []byte
 	offset int
 }
 
 //GetNextBytes returns `length` number of bytes
-func (sb *Bytes) GetNextBytes(length int) (bytes []byte, err error) {
+func (sb *OffsetBytes) GetNextBytes(length int) (bytes []byte, err error) {
 	calcLength := MinInt(length, sb.GetRemainingLength())
 	bytes = sb.data[sb.offset:calcLength]
 	if len(bytes) == 0 {
@@ -23,7 +23,7 @@ func (sb *Bytes) GetNextBytes(length int) (bytes []byte, err error) {
 }
 
 //GetNextByte returns next byte
-func (sb *Bytes) GetNextByte() (b byte, err error) {
+func (sb *OffsetBytes) GetNextByte() (b byte, err error) {
 	length := sb.GetRemainingLength()
 	if sb.offset+length > len(sb.data) {
 		err = fmt.Errorf("out of range")
@@ -35,7 +35,7 @@ func (sb *Bytes) GetNextByte() (b byte, err error) {
 }
 
 //GetRemaining returns remaining bytes
-func (sb *Bytes) GetRemaining() (bytes []byte) {
+func (sb *OffsetBytes) GetRemaining() (bytes []byte) {
 	length := sb.GetRemainingLength()
 	if length == 0 {
 		return
@@ -46,25 +46,25 @@ func (sb *Bytes) GetRemaining() (bytes []byte) {
 }
 
 //GetAll resets offset and returns all bytes
-func (sb *Bytes) GetAll() (bytes []byte) {
+func (sb *OffsetBytes) GetAll() (bytes []byte) {
 	sb.Reset()
 	bytes = sb.GetRemaining()
 	return
 }
 
 //GetRemainingLength returns number of remaining bytes
-func (sb *Bytes) GetRemainingLength() (length int) {
+func (sb *OffsetBytes) GetRemainingLength() (length int) {
 	length = len(sb.data) - sb.offset
 	return
 }
 
 //Reset resets offset
-func (sb *Bytes) Reset() {
+func (sb *OffsetBytes) Reset() {
 	sb.offset = 0
 }
 
 //Check checks if extra bytes exist
-func (sb *Bytes) Check() (err error) {
+func (sb *OffsetBytes) Check() (err error) {
 	dataLength := len(sb.data)
 	if sb.offset != dataLength {
 		err = fmt.Errorf("current offset: %v and current length: %v", sb.offset, dataLength)
@@ -72,41 +72,41 @@ func (sb *Bytes) Check() (err error) {
 	return
 }
 
-func (sb *Bytes) ToHex() (res string) {
+func (sb *OffsetBytes) ToHex() (res string) {
 	res = "0x" + hex.EncodeToString(sb.GetAll())
 	return
 }
 
-func (sb *Bytes) ToCompact() (res Bytes, err error) {
+func (sb *OffsetBytes) ToCompact() (res OffsetBytes, err error) {
 	bytes := BytesToCompactBytes(sb.GetAll())
 	res, err = NewBytes(bytes)
 	return
 }
 
-//NewBytes creates Bytes struct
-func NewBytes(data interface{}) (sb Bytes, err error) {
+//NewBytes creates OffsetBytes struct
+func NewBytes(data interface{}) (sb OffsetBytes, err error) {
 	switch data.(type) {
-	case Bytes:
-		sb = data.(Bytes)
+	case OffsetBytes:
+		sb = data.(OffsetBytes)
 	case []byte:
-		sb = Bytes{
+		sb = OffsetBytes{
 			data: data.([]byte),
 		}
 	case string:
-		sb, err = func(data string) (sb Bytes, err error) {
+		sb, err = func(data string) (sb OffsetBytes, err error) {
 			if data[:2] == "0x" { //Respect the 60's
 				data = data[2:]
 			}
 			bytes, err := hex.DecodeString(data)
 			if err == nil {
-				sb = Bytes{
+				sb = OffsetBytes{
 					data: bytes,
 				}
 			}
 			return
 		}(data.(string))
 	case nil:
-		sb = Bytes{}
+		sb = OffsetBytes{}
 	default:
 		err = fmt.Errorf("unknown type %T", data)
 	}
